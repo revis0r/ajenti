@@ -25,12 +25,26 @@ class UI:
 		return s
 
 
+class Template:
+	_data = ''
+	
+	def __init__(self, d):
+		self._data = d
+		
+	def dump(self, v={}):
+		s = self._data
+		for k in v.keys():
+			s = s.replace('$' + k, v[k])
+		return s
+		
+		
 class Element(object):
 	visible = True
 	id = ''
 	handler = None
 	disabled = False
-
+	readonly = False
+	
 	def __init__(self):
 		self.id = str(random.randint(1, 9000*9000))
 
@@ -80,27 +94,45 @@ class Container(Element):
 
 
 class HContainer(Container):
+	_tpl = Template('<table cellspacing="0" cellpadding="0"><tr>$INNER</tr></table>')
+	_tpli = Template('<td width="$W">$INNER</td>')
+	widths = None
+	
+	def __init__(self, e=[]):
+		Container.__init__(self, e)
+		self.widths = {}
+		
 	def dump_HTML(self):
-		s = ''
-		if self.visible:
-			s += '<table cellspacing="0" cellpadding="0"><tr>'
-			for e in self.elements:
-				if e.visible:
-					s += '<td>' + e.dump_HTML() + '</td>'
-			s += '</tr></table>'
-		return s
+		inner = ''
+		idx = 0
+		for e in self.elements:
+			if e.visible:
+				w = self.widths[idx] if self.widths.has_key(idx) else 'auto'
+				inner += self._tpli.dump({'W': w, 'INNER': e.dump_HTML()})
+			idx += 1 
+		return self._tpl.dump({'INNER': inner})
 
 
 class VContainer(Container):
+	_tpl = Template('<table cellspacing="0" cellpadding="0">$INNER</table>')
+	_tpli = Template('<tr height="$H"><td>$INNER</td></tr>')
+	heights = None
+	
+	def __init__(self, e=[]):
+		Container.__init__(self, e)
+		self.heights = {}
+	
 	def dump_HTML(self):
-		s = ''
-		if self.visible:
-			s += '<table cellspacing="0" cellpadding="0">'
-			for e in self.elements:
-				if e.visible:
-					s += '<tr><td>' + e.dump_HTML() + '</td></tr>'
-			s += '</table>'
-		return s
+		inner = ''
+		idx = 0
+		for e in self.elements:
+			if e.visible:
+				h = self.heights[idx] if self.heights.has_key(idx) else 'auto'
+				inner += self._tpli.dump({'H': h, 'INNER': e.dump_HTML()})
+			idx += 1
+		print self._tpl
+		return self._tpl.dump({'INNER': inner})
+
 
 
 class SwitchContainer(Container):
@@ -534,10 +566,10 @@ class TreeContainerNode(VContainer):
 	text = ""
 	expanded = False
 
-	_tpl = '<div class="ui-el-treecontainernode"><div class="ui-el-treecontainernode-button"><a href="#">' + \
+	_tplt = Template('<div class="ui-el-treecontainernode"><div class="ui-el-treecontainernode-button"><a href="#">' + \
 			'<img id="$ID-btn" src="/dl;core;ui/tree-$IMG.png" ' + \
 			'onclick="javascript:showhide(\'$ID\');ajaxNoUpdate(\'/handle;$ID;click;\');treeicon(\'$ID-btn\')"/></a></div>' + \
-			'$TEXT<div class="ui-el-treecontainernode-inner" id="$ID" $VS>$INNER</div>'
+			'$TEXT<div class="ui-el-treecontainernode-inner" id="$ID" $VS>$INNER</div>')
 			
 	def __init__(self, t=''):
 		VContainer.__init__(self)
@@ -549,10 +581,7 @@ class TreeContainerNode(VContainer):
 		if not self.expanded:
 			vs = 'style="display:none;"'		
 		inner = VContainer.dump_HTML(self)
-
-		s = self._tpl.replace('$IMG', img).replace('$TEXT', self.text)
-		s = s.replace('$ID', self.id).replace('$INNER', inner).replace('$VS', vs)
-		return s
+		return self._tplt.dump({'IMG': img, 'TEXT': self.text, 'ID': self.id, 'INNER': inner, 'VS': vs})
 
 	def handle(self, target, event, data):
 		if target == self.id and event == 'click':
