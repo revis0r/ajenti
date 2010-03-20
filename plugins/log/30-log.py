@@ -74,10 +74,10 @@ class LogPluginInstance(PluginInstance):
 		self._btnRefresh.handler = self._refresh_log_tree
 		self._btnSearch = ui.Button('Search')
 		self._btnSearch.handler = self._search_logs
-		self._txtSearch = ui.Input()		
+		self._txtSearch = ui.Input('')		
 		self._btnFilter = ui.Button('Filter')
 		self._btnFilter.handler = self._filter_logs
-		self._txtFilter = ui.Input()		
+		self._txtFilter = ui.Input('')		
 				
 		c0 = ui.HContainer([self._btnRefresh, ui.Spacer(100, 1), self._txtSearch, self._btnSearch, ui.Spacer(40, 1), self._txtFilter, self._btnFilter])
 		
@@ -88,7 +88,19 @@ class LogPluginInstance(PluginInstance):
 		pass
 
 	def _search_logs(self, t, e, d):
-		return
+		self._logArea.text = self._logArea.text.replace("<b>", "")
+		self._logArea.text = self._logArea.text.replace("</b>", "")
+		log.err("Log", self._txtSearch.text)
+		pos = self._logArea.text.find(self._txtSearch.text)
+		log.err("Log", pos)
+		#self._logArea.text[pos:pos+len(self._txtSearch.text)] = 
+		for self._txtSearch.text in self._logArea.text:					
+			#searchResult = self._logArea.text[pos:pos+len(self._txtSearch.text)]			
+			#searchResult = searchResult.replace(self._txtSearch.text, "<b>"+self._txtSearch.text+"</b>")
+			break
+		
+		#self._logArea.text = self._logArea.text.replace(self._txtSearch.text, "<b>"+self._txtSearch.text+"</b>")
+		
 
 	def _filter_logs(self, t, e, d):
 		return
